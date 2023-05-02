@@ -50,8 +50,8 @@ namespace ariel
         friend Fraction operator*(const float &fract, const Fraction &other);
         friend Fraction operator/(const float &fract, const Fraction &other);
 
-        int gcd(int numerator, int denominator);
     private:
+        int gcd(int numerator, int denominator);
         void reduction();
 
 

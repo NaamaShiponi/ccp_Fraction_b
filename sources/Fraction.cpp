@@ -13,7 +13,7 @@ Fraction::Fraction():numerator(1),denominator(0){};
 
 Fraction::Fraction(int num1,int num2):numerator(num1),denominator(num2){
     if (denominator == 0) {
-        throw invalid_argument("Denominator cannot be 0.");
+        throw invalid_argument("0");
     }
     if (num1 == 0) num2=1;
 
@@ -58,8 +58,6 @@ void Fraction::reduction(){
         positivDenom=positivDenom*(-1);
     }
     int gcdNum = gcd(positivNumer,positivDenom);
-    // cout << endl << "numerator " << numerator << "denominator" << denominator << endl ; 
-    // cout <<  "gcd(positivNumer,positivDenom) (" <<positivNumer << positivDenom << ")" << " gcdNum "<< gcdNum << endl;
 
     numerator=numerator/gcdNum;
     denominator=denominator/gcdNum;
@@ -82,37 +80,60 @@ void Fraction::set(int numerator, int denominator){
 
 
 Fraction Fraction::operator+(const Fraction& other) const{
-    int num = numerator * other.denominator + other.numerator * denominator;
-    int den = denominator * other.denominator;
+    int max_int = std::numeric_limits<int>::max();
+    int min_int = std::numeric_limits<int>::min();
+    
+    long num = (long)numerator * other.denominator + other.numerator * denominator;
+    long den = (long)denominator * other.denominator;
+    if(num>max_int || num<min_int || den>max_int || den<min_int){
+        throw std::overflow_error("long");
+    }
     return Fraction(num, den);
     
 }
 Fraction Fraction::operator-(const Fraction& other) const{
-    int num = numerator * other.denominator - other.numerator * denominator;
-    int den = denominator * other.denominator;
+    int max_int = std::numeric_limits<int>::max();
+    int min_int = std::numeric_limits<int>::min();
+    
+    long num = (long)numerator * other.denominator - other.numerator * denominator;
+    long den = (long)denominator * other.denominator;
+    if(num>max_int || num<min_int || den>max_int || den<min_int){
+        throw std::overflow_error("long");
+    }
     return Fraction(num, den);
 }
 Fraction Fraction::operator*(const Fraction& other) const{
-    int num = numerator * other.numerator;
-    int den = denominator * other.denominator;
+    int max_int = std::numeric_limits<int>::max();
+    int min_int = std::numeric_limits<int>::min();
+    long num = (long)numerator * other.numerator;
+    long den = (long)denominator * other.denominator;
+    if(num>max_int || num<min_int || den>max_int || den<min_int){
+        throw std::overflow_error("long");
+    }
     return Fraction(num, den);
     
 }
+
 Fraction Fraction::operator/(const Fraction& other) const{
-    if(numerator==0){
-        throw invalid_argument("It is impossible to divide by 0.");
+    int max_int = std::numeric_limits<int>::max();
+    int min_int = std::numeric_limits<int>::min();
+    if(other.numerator==0){
+        throw std::runtime_error("division by zero");    
     }
-    int num = numerator * other.denominator;
-    int den = denominator * other.numerator;
+
+    long num = (long)numerator * other.denominator;
+    long den = (long)denominator * other.numerator;
+    if(num>max_int || num<min_int || den>max_int || den<min_int){
+        throw std::overflow_error("long");
+    }
     return Fraction(num, den);
 }
 
 
 bool Fraction::operator==(const Fraction& other) const {
-    if(numerator==other.numerator && denominator==other.denominator){
-        return true;
-    }
-    return false;
+    float number1 = (float)this->numerator/this->denominator;
+    float number2 = (float)other.numerator/other.denominator;
+    return std::abs(number1 - number2)<0.001;
 }
 bool Fraction::operator!=(const Fraction& other) const {
     return !(*this == other);
@@ -167,13 +188,31 @@ std::ostream& ariel::operator<<(std::ostream& oos, const Fraction& fract) {
 }
 
 
+std::istream& ariel::operator>>(std::istream& iis, Fraction& fraction){
+        int numer, denom;
+        iis >> numer;
+        if (iis.peek() == '.')
+            throw std::runtime_error("Invalid input.");
 
-std::istream& ariel::operator>>(std::istream& iis, Fraction& fract) {
-    int numerator, denominator;
-    iis >> numerator >> denominator;
-    fract = Fraction(numerator, denominator);
-    return iis;
+        iis.ignore(1); 
+
+        iis >> denom;
+        if (denom == 0)
+            throw std::runtime_error("divideing by 0!");
+
+        if((denom<0 && numer<0) || (denom<0 && numer>0)){
+            denom=denom*(-1);
+            numer=numer*(-1);
+        }
+        fraction.numerator=numer;
+        fraction.denominator = denom;
+        fraction.reduction();
+
+        if (iis.fail())
+            throw std::runtime_error("Invalid input.");
+        return iis;
 }
+
 
 
 bool ariel::operator==(const float& fract, const Fraction& other) {
